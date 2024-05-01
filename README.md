@@ -199,7 +199,7 @@ Nginx и k8s в связке обеспечат нам высокий урове
 
 ### Диаграмма
 
-![image](./src/avito.drawio.png)
+![image](./src/avito_erd.drawio.png)
 
 ### Размер данных и нагрузка на чтение / запись
 
