@@ -129,7 +129,7 @@ DAU - 2 млн пользователей [^1]
 ![population.png](./src/population.png)
 
 * Москва (2 ДЦ)
-* Новосибирск
+* Иркутск
 
 Также эти города находятся на магистралях сети
 
@@ -400,27 +400,51 @@ Nginx и k8s в связке обеспечат нам высокий урове
 
 ## Часть 11. Расчёт ресурсов <a name="11"></a>
 
-### Расчёт ресурсов для одного ЦОДа
-
 #### Нагрузка на хранилища и СУБД
 
-- Tarantool:
-  - Два шарда, каждый должен хранить ~1.2 ТБ в памяти. В среднем 7000 RPS чтение на шард. Трафик ~55 Mbit/s 
-
-- ClickHouse: 
-  - 15 Tb данных, 1260 RPS запись, Трафик < 1 Mbit/s
-
-- Elasticsearch - поиск:
-  - Объем данных незначительный, В среднем 140 RPS
-
-- CEPH:
+- **Tarantool:**
+    - Два шарда, каждый должен хранить ~1.2 ТБ в памяти. В среднем 7000 RPS чтение на шард. Трафик ~55 Mbit/s
+- **ClickHouse:**
+    - 15 Tb данных, 1260 RPS запись, Трафик < 1 Mbit/s
+- **Elasticsearch - поиск:**
+    - Объем данных незначительный, В среднем 140 RPS
+- **CEPH:**
     - Объем данных ~249 ТБ, 1120*2 RPS , Трафик ~2.2 Gbit/s
-
-- PostgreSQL:
+- **PostgreSQL:**
     - Всего 4 реплики, Объем данных ~1 ТБ, чтение 1680 RPS, Запись 40 RPS Трафик < 20 Mbit/s
+- **Nginx**:
+    - Основной: до 16000 RPS, также используется в качетве балансировщиков перед каждым из сервисов
 
-| Название   | Хостинг | Конфигурация                                              | Cores | Cnt | Покупка, $ (1 шт) | Амортизация, $/мес (сумма, на 5 лет) |
-|------------|---------|-----------------------------------------------------------|-------|-----|-------------------|--------------------------------------|
+#### Нагрузка на сервисы
+
+| Сервис                 | Нагрузка, RPS | Net, Mbit/s |
+|------------------------|---------------|-------------|
+| CRUD Service           | 1841          | 3           |
+| Images Service         | 156           | 300         |
+| Recommendation Service | 1260          | 1           |
+| API Gateway            | 3257          | 303         |
+
+### Балансировка
+
+Согласно тестированию nginx[^16][^17] бюджетный
+сервер `CPU: 4 core | RAM: 32 GB |HDD: 500 GB | NIC: Intel X710 2×10 Gbe` сможет выдерживать нашу нагрузку.
+
+#### Итог
+
+| Сервис                 | CPU (cores) | RAM (GB) | Disk           | Count |
+|------------------------|-------------|----------|----------------|-------|
+| Tarantool              | 16          | 1536     | 4x NVMe 8 GB   | 2     |
+| ClickHouse             | 16          | 32       | 12x NVMe 4 TB  | 1     |
+| Elasticsearch - поиск  | 8           | 32       | 4x NVMe 8 GB   | 1     |
+| CEPH                   | 64          | 256      | 24x NVMe 12 TB | 1     |
+| PostgreSQL (Master)    | 16          | 64       | 2x NVMe 512 GB | 1     |
+| PostgreSQL (Replica)   | 16          | 64       | 2x NVMe 512 GB | 3     |
+| CRUD Service           | 8           | 16       | 1x NVMe 8 GB   | 6     |
+| Images Service         | 4           | 8        | 1x NVMe 8 GB   | 5     |
+| Recommendation Service | 8           | 16       | 1x NVMe 8 GB   | 2     |
+| API Gateway            | 8           | 16       | 1x NVMe 8 GB   | 1     |
+| Kubernetes Node        | 16          | 32       | 1x NVMe 8 GB   | 11    |
+| Load Balancer          | 6           | 32       | 1x NVMe 8 GB   | 12    |
 
 ## Список источников:
 
@@ -451,3 +475,7 @@ Nginx и k8s в связке обеспечат нам высокий урове
 [^14]: [Benchmarking and sizing Elasticsearch](https://www.elastic.co/blog/benchmarking-and-sizing-your-elasticsearch-cluster-for-logs-and-metrics)
 
 [^15]: [VShard — горизонтальное масштабирование в Tarantool](https://habr.com/ru/companies/vk/articles/436916/)
+
+[^16]: [NGINX Plus Sizing Guide: How We Tested](https://www.nginx.com/blog/testing-the-performance-of-nginx-and-nginx-plus-web-servers/)
+
+[^17]: [Testing the Performance of NGINX and NGINX Plus Web Servers](https://www.nginx.com/blog/nginx-plus-sizing-guide-how-we-tested/)
