@@ -429,7 +429,7 @@ Nginx и k8s в связке обеспечат нам высокий урове
 Согласно тестированию nginx[^16][^17] бюджетный
 сервер `CPU: 4 core | RAM: 32 GB |HDD: 500 GB | NIC: Intel X710 2×10 Gbe` сможет выдерживать нашу нагрузку.
 
-#### Итог
+### Итоговые конфигурации
 
 | Сервис                 | CPU (cores) | RAM (GB) | Disk           | Count |
 |------------------------|-------------|----------|----------------|-------|
@@ -439,12 +439,13 @@ Nginx и k8s в связке обеспечат нам высокий урове
 | CEPH                   | 64          | 256      | 24x NVMe 12 TB | 1     |
 | PostgreSQL (Master)    | 16          | 64       | 2x NVMe 512 GB | 1     |
 | PostgreSQL (Replica)   | 16          | 64       | 2x NVMe 512 GB | 3     |
-| CRUD Service           | 8           | 16       | 1x NVMe 8 GB   | 6     |
-| Images Service         | 4           | 8        | 1x NVMe 8 GB   | 5     |
-| Recommendation Service | 8           | 16       | 1x NVMe 8 GB   | 2     |
-| API Gateway            | 8           | 16       | 1x NVMe 8 GB   | 1     |
-| Kubernetes Node        | 16          | 32       | 1x NVMe 8 GB   | 11    |
+| CRUD Service           | 8           | 16       | 1x NVMe 8 GB   | 3     |
+| Images Service         | 4           | 8        | 1x NVMe 8 GB   | 3     |
+| Recommendation Service | 8           | 16       | 1x NVMe 8 GB   | 3     |
+| API Gateway            | 8           | 16       | 1x NVMe 8 GB   | 2     |
 | Load Balancer          | 6           | 32       | 1x NVMe 8 GB   | 12    |
+
+Основной критерий для определения количества ядер - время работы процессора в зависимости от ситуации[^18]
 
 ## Список источников:
 
@@ -479,3 +480,5 @@ Nginx и k8s в связке обеспечат нам высокий урове
 [^16]: [NGINX Plus Sizing Guide: How We Tested](https://www.nginx.com/blog/testing-the-performance-of-nginx-and-nginx-plus-web-servers/)
 
 [^17]: [Testing the Performance of NGINX and NGINX Plus Web Servers](https://www.nginx.com/blog/nginx-plus-sizing-guide-how-we-tested/)
+
+[^18]: [Latency Numbers Every Programmer Should Know](https://gist.github.com/jboner/2841832)
